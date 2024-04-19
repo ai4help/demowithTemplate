@@ -11,7 +11,7 @@ export const MENUITEMS = [
   {
     menutitle: "MAIN",
     Items: [
-      { path: "/components/icons/icons", icon: icon1, type: "link", active: false, selected: false, title: "Start Session" },
+      { path: "/components/session", icon: icon1, type: "link", active: false, selected: false, title: "Start Session" },
       { path: "/components/widgets/widgets", icon: icon5, type: "link", active: false, selected: false, title: "Blogs" },
       { path: "/components/widgets/widgets", icon: icon16, type: "link", active: false, selected: false, title: "My Profile" },
     ],

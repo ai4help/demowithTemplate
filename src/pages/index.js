@@ -3,8 +3,8 @@ import { Alert, Button, Card, Col, Form, InputGroup, Nav, Tab } from 'react-boot
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { auth } from '../../shared/firebase/firebaseapi'
 import { basePath } from '../../next.config'
+
 import axios from 'axios'
 //import login from '../pages/api/login';
 export default function Home() {
@@ -21,27 +21,30 @@ export default function Home() {
     };
     const navigate = useRouter();
     const routeChange = () => {
-        const path = "/components/dashboard/crm/";
+        const path = "/components/session/";
         navigate.push(path);
     };
 
     const Login1 = async () => {
-        console.log(email, password);
-        const response = await axios.get(`/api/login`, {
+        const data = { email: email, password: password };
+        let response = await fetch(`/api/login`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ data: email }),
-        });
-        console.log(response);
-        if (response.ok) {
-            alert('Data saved successfully!');
+            body: JSON.stringify({ data }),
+        })
+        if (response.status === 200) {
             routeChange();
+        } else if (response.status === 401) {
+            setError('Invalid password');
+        } else if (response.status === 404) {
+            setError('User not found please Sign up!');
         } else {
-            alert('call didnt go through');
+            setError('Something went wrong!');
         }
-    };
 
+    };
     return (
         <>
             <div className="container">
@@ -73,7 +76,6 @@ export default function Home() {
                                     <Tab.Pane eventKey="nextjs" className='border-0'>
                                         <div className="p-4">
                                             <p className="h5 fw-semibold mb-2 text-center">Sign In</p>
-                                            <p className="mb-4 text-muted op-7 fw-normal text-center">Welcome back Jhon !</p>
                                             <div className="row gy-3">
                                                 {err && <Alert variant="danger">{err}</Alert>}
                                                 <Col xl={12}>
