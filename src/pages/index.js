@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { basePath } from '../../next.config'
 
-import axios from 'axios'
 //import login from '../pages/api/login';
 export default function Home() {
     const [passwordshow1, setpasswordshow1] = useState(false);
@@ -21,7 +20,7 @@ export default function Home() {
     };
     const navigate = useRouter();
     const routeChange = () => {
-        const path = "/components/session/";
+        const path = "/components/profile/";
         navigate.push(path);
     };
 

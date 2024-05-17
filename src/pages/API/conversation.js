@@ -1,13 +1,12 @@
 export const dynamic = 'force-dynamic' // defaults to auto
-import { MongoClient } from 'mongodb';
 
 export default async function handler(req, res) {
-    const url = 'http://localhost:8000/topic'
-    const data = req.body.data.technologies
-
+    const url = 'http://localhost:8000/question'
+    const data = req.body
+    console.log('data', data)
     await fetch(url, {
         method: 'POST',
-        body: JSON.stringify({ topic: data }),
+        body: JSON.stringify({ 'q': data }),
         headers: {
             'Content-Type': 'application/json'
         }

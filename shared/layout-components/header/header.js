@@ -696,7 +696,7 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
                                         <img src={`${process.env.NODE_ENV === 'production' ? basePath : ''}/assets/images/faces/9.jpg`} alt="img" width="32" height="32" className="rounded-circle" />
                                     </div>
                                     <div className="d-sm-block d-none">
-                                        <p className="fw-semibold mb-0 lh-1">Json Taylor</p>
+                                        <p className="fw-semibold mb-0 lh-1" id='userName'>Json Taylor</p>
                                         <span className="op-7 fw-normal d-block fs-11">Web Designer</span>
                                     </div>
                                 </div>

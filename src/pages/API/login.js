@@ -8,13 +8,19 @@ export default async function handler(req, res) {
     const database = client.db('ai4help'); // Choose a name for your database
 
     const collection = database.collection('userData'); // Choose a name for your collection
-    const userData = await collection.findOne({ name: req.body.data.email });
+    const userData = await collection.findOne({ name: req.body.data.email })
     if (userData) {
       if (userData.password !== req.body.data.password) {
         res.status(401).send({ message: 'Invalid password' });
       } else if (userData.name === req.body.data.email) {
         res.status(200).send({ message: 'Login successful' });
       }
+      else {
+        res.status(404).send({ message: 'User not found' });
+      }
+      localStorage.setItem('userData', userData);
+
+      console.log('userData', userData);
     } else {
       res.status(404).send({ message: 'User not found' });
     }
