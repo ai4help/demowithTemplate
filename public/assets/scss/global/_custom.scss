@@ -1209,21 +1209,33 @@ pre.card-body.collapse {
 
 }
 
-.react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::before, .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::before, .react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::after, .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::after {
+.react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::before,
+.react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::before,
+.react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::after,
+.react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::after {
   left: -16px !important;
 }
-.bg-img, [data-bg-img="bgimg1"], [data-bg-img="bgimg2"], [data-bg-img="bgimg3"], [data-bg-img="bgimg4"], [data-bg-img="bgimg5"] {
+
+.bg-img,
+[data-bg-img="bgimg1"],
+[data-bg-img="bgimg2"],
+[data-bg-img="bgimg3"],
+[data-bg-img="bgimg4"],
+[data-bg-img="bgimg5"] {
   &[data-theme-mode="dark"][data-nav-layout="vertical"][data-menu-styles="light"] {
-      &[data-nav-style="menu-click"][data-toggled="menu-click-closed"],
-      &[data-nav-style="menu-hover"][data-toggled="menu-hover-closed"],
-      &[data-nav-style="icon-click"][data-toggled="icon-click-closed"],
-      &[data-nav-style="icon-hover"][data-toggled="icon-hover-closed"] {
-          .app-sidebar .slide.has-sub .slide-menu {
-              background-color: #fff;
-          }
+
+    &[data-nav-style="menu-click"][data-toggled="menu-click-closed"],
+    &[data-nav-style="menu-hover"][data-toggled="menu-hover-closed"],
+    &[data-nav-style="icon-click"][data-toggled="icon-click-closed"],
+    &[data-nav-style="icon-hover"][data-toggled="icon-hover-closed"] {
+      .app-sidebar .slide.has-sub .slide-menu {
+        background-color: #fff;
       }
+    }
   }
+
   &[data-theme-mode="dark"][data-vertical-style="doublemenu"][data-menu-styles=transparent] {
+
     .app-sidebar .slide.has-sub .slide-menu.child1,
     .app-sidebar .slide.has-sub .slide-menu.child2,
     .app-sidebar .slide.has-sub .slide-menu.child3 {
@@ -1235,32 +1247,56 @@ pre.card-body.collapse {
 .tooltip-warning.bs-tooltip-bottom .tooltip-arrow::before {
   border-bottom-color: $warning;
 }
+
 .tooltip-info.bs-tooltip-bottom .tooltip-arrow::before {
   border-bottom-color: $info;
 }
+
 @media (min-width: 992px) {
   [data-toggled="double-menu-open"][data-vertical-style="doublemenu"][data-menu-styles="transparent"] {
-      .slide.has-sub .slide-menu {
+    .slide.has-sub .slide-menu {
       border-inline-end-color: var(--menu-border-color);
-      }.app-sidebar .main-sidebar .slide.side-menu__label1 {
-          border-block-end-color: var(--menu-border-color);
-      }
+    }
+
+    .app-sidebar .main-sidebar .slide.side-menu__label1 {
+      border-block-end-color: var(--menu-border-color);
+    }
   }
 }
+
 .order-track .accordion-button {
   background-color: transparent;
   padding-block-end: 0;
 }
+
 .invoice-quantity-container {
   .input-group .btn {
-      z-index: 0;
+    z-index: 0;
   }
 }
 
-[dir=rtl]  {
+[dir=rtl] {
   #task-list-stats {
-    .apexcharts-svg,.apexcharts-canvas {
-        width: 100% !important;
+
+    .apexcharts-svg,
+    .apexcharts-canvas {
+      width: 100% !important;
     }
   }
+}
+
+.chat-message {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.chat-message.user {
+  background-color: #d1e7dd;
+  text-align: left;
+}
+
+.chat-message.bot {
+  background-color: #f8d7da;
+  text-align: right;
 }
