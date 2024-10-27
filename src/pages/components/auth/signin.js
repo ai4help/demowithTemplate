@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import axios from 'axios'; // For making API requests
+import { useRouter } from 'next/router';
+import axios from 'axios';
 
 export default function SignIn() {
     const [email, setEmail] = useState('');
     const [isCodeSent, setIsCodeSent] = useState(false);
     const [code, setCode] = useState('');
-    const [isVerified, setIsVerified] = useState(false);
     const [error, setError] = useState('');
+    const router = useRouter();
 
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Call API to send verification code
             await axios.post('/api/auth/send-code', { email });
             setIsCodeSent(true);
             setError('');
@@ -26,9 +25,8 @@ export default function SignIn() {
         try {
             const response = await axios.post('/api/auth/verify-code', { email, code });
             if (response.data.success) {
-                setIsVerified(true);
                 setError('');
-                // Log the user in (could set session manually or redirect)
+                router.push('/components/session'); // Redirect to session page on success
             } else {
                 setError('Invalid verification code. Try again.');
             }
@@ -39,7 +37,6 @@ export default function SignIn() {
 
     return (
         <div className="signin-container">
-            {/* Left Section */}
             <div className="signin-left-section">
                 <div className="signin-welcome-text">
                     <h1>Hello SaleSkip! 👋</h1>
@@ -47,7 +44,6 @@ export default function SignIn() {
                 </div>
             </div>
 
-            {/* Right Section */}
             <div className="signin-right-section">
                 <div className="signin-form-container">
                     <h2>SaleSkip</h2>

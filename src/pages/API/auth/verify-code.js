@@ -1,14 +1,29 @@
-// pages/api/auth/verify-code.js
-
-let verificationCodes = {}; // Should match the same used in the send-code API
+import VerificationCode from '../../../models/VerificationCode';
+import dbConnect from '../../../utils/dbConnect';
 
 export default async function handler(req, res) {
-    const { email, code } = req.body;
+  if (req.method !== 'POST') {
+    return res.status(405).end(); // Method Not Allowed
+  }
 
-    if (verificationCodes[email] === code) {
-        delete verificationCodes[email]; // Clear the code after successful verification
-        res.status(200).json({ success: true });
-    } else {
-        res.status(400).json({ success: false, message: 'Invalid code' });
+  await dbConnect();
+
+  const { email, code } = req.body;
+console.log(email, code)
+  try {
+    const record = await VerificationCode.findOne({ email });
+    console.log(record)
+    if (!record) {
+      return res.status(400).json({ error: 'Verification code expired or not found' });
     }
+    if (record.code === code) {
+      await VerificationCode.deleteOne({ email });
+      return res.status(200).json({ success: true });
+    } else {
+      return res.status(400).json({ error: 'Invalid verification code' });
+    }
+  } catch (error) {
+    console.error('Error verifying code:', error);
+    res.status(500).json({ error: 'Verification failed' });
+  }
 }
