@@ -26,7 +26,7 @@ export default function SignIn() {
             const response = await axios.post('/api/auth/verify-code', { email, code });
             if (response.data.success) {
                 setError('');
-                router.push('/components/session'); // Redirect to session page on success
+                router.push('/session'); // Redirect to session page on success
             } else {
                 setError('Invalid verification code. Try again.');
             }

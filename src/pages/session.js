@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Button, Card, Col, Row, Form } from 'react-bootstrap';
-import Seo from '../../../shared/layout-components/seo/seo';
+import Seo from '../../shared/layout-components/seo/seo';
 
 const Floatinglabels = () => {
     const [isRecording, setIsRecording] = useState(false);
