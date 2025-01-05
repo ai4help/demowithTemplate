@@ -3,40 +3,86 @@ import { Button, Card, Col, Row, Form } from 'react-bootstrap';
 import Seo from '../../shared/layout-components/seo/seo';
 
 const Floatinglabels = () => {
+    const [client, setClient] = useState('');
+    const [jobDescription, setJobDescription] = useState('');
+    const [resumeFile, setResumeFile] = useState(null);
+    const [sessionId, setSessionId] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
-    const [recordingComplete, setRecordingComplete] = useState(false);
     const [interimTranscript, setInterimTranscript] = useState('');
     const [finalTranscript, setFinalTranscript] = useState('');
     const [messages, setMessages] = useState([]);
+    const [error, setError] = useState('');
+    const [isMicEnabled, setIsMicEnabled] = useState(false);
     const recognitionRef = useRef(null);
 
-    const setTopic = async () => {
-        const topics = {
-            client: document.getElementById('ClientDetails').value,
-            jobDescription: document.getElementById('JobDescription').value,
-            conversation: finalTranscript,
-        };
+    const handleClientChange = (e) => setClient(e.target.value);
+    const handleJobDescriptionChange = (e) => setJobDescription(e.target.value);
 
-        await fetch('/api/topic', {
-            method: 'POST',
-            body: JSON.stringify({ topic: topics.jobDescription }), // Adjusted to match the backend expectation
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('data: : :', data);
-                if (data.message === 'success') {  // Changed from data.msg to data.message
-                    document.getElementById('setTopicCard').style.border = '1px solid green';
+    // Function to handle file selection and upload immediately
+    const handleResumeUpload = async (e) => {
+        const file = e.target.files[0];
+        const allowedFormats = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+
+        if (file && allowedFormats.includes(file.type)) {
+            setResumeFile(file);
+
+            const formData = new FormData();
+            formData.append('file', file);
+console.log('formData', formData)
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    console.log('File uploaded successfully');
+                    setError('');
                 } else {
-                    document.getElementById('setTopicCard').style.border = '1px solid red';
+                    console.log('File upload failed');
+                    setError('Failed to upload the resume file.');
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('setTopicCard').style.border = '1px solid red';
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                setError('An error occurred while uploading the file.');
+            }
+        } else {
+            setError('Invalid file format. Please upload a PDF or Word document.');
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!client || !jobDescription || !resumeFile) {
+            setError('All fields are mandatory.');
+            return;
+        }
+
+        try {
+            // Send client and job description to create a session
+            const response = await fetch('/api/topic', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ client, jobDescription }),
             });
+
+            const data = await response.json();
+            if (data.sessionId) {
+                setSessionId(data.sessionId);
+                setIsMicEnabled(true); // Enable the mic button
+                setError('');
+            } else {
+                setError('Failed to create session.');
+            }
+        } catch (err) {
+            setError('An error occurred. Please try again.');
+            console.error(err);
+        }
     };
 
     const startRecording = () => {
@@ -63,61 +109,49 @@ const Floatinglabels = () => {
         recognitionRef.current.start();
     };
 
-    useEffect(() => {
-        return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
-        };
-    }, []);
-
     const stopRecording = async () => {
         if (recognitionRef.current) {
             recognitionRef.current.stop();
-            setRecordingComplete(true);
             const transcript = finalTranscript;
             setMessages((prevMessages) => [...prevMessages, { type: 'user', text: transcript }]);
             setInterimTranscript('');
             setFinalTranscript('');
-            console.log('Final Transcript after stopping:', transcript);
-            const data = { q: transcript };
-            console.log('data:', data);
-            // Send the final transcript to the Next.js API endpoint
-            try {
-                const response = await fetch('/api/conversation', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                });
 
-                if (response.ok) {
+            // Send the transcription to the server
+            if (sessionId) {
+                try {
+                    const response = await fetch('/api/conversation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ transcription: transcript, sessionId }),
+                    });
+
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
+                    let completeResponse = '';
 
                     const readStream = async () => {
                         let { done, value } = await reader.read();
-                        let completeResponse = '';
                         while (!done) {
-                            const chunk = decoder.decode(value);
-                            completeResponse += chunk;
+                            completeResponse += decoder.decode(value);
                             ({ done, value } = await reader.read());
                         }
                         setMessages((prevMessages) => [...prevMessages, { type: 'bot', text: completeResponse }]);
                     };
 
                     readStream();
-                } else {
-                    console.log('Failed to send transcript');
+                } catch (error) {
+                    console.error('Error sending transcript:', error);
                 }
-            } catch (error) {
-                console.error('Error sending transcript:', error);
             }
         }
     };
 
     const handleToggleRecording = () => {
+        if (!isMicEnabled) return;
+
         setIsRecording(!isRecording);
         if (!isRecording) {
             startRecording();
@@ -126,93 +160,57 @@ const Floatinglabels = () => {
         }
     };
 
-    const handleFileUpload = async (event) => {
-        const file = event.target.files[0];
-        const allowedFormats = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ];
-        if (file && allowedFormats.includes(file.type)) {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-            })
-                .then((response) => {
-                    if (response.ok) {
-                        console.log('File uploaded successfully');
-                    } else {
-                        console.log('File upload failed');
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        } else {
-            console.log('Invalid file format');
-        }
-    };
-
     return (
         <>
-            <Seo title={'FloatingLabels'} />
+            <Seo title={'Job Application'} />
             <Row className='mt-3'>
                 <Col xl={9}>
                     <Form>
-                        <Form.Group controlId='formFile' className='mb-3'>
-                            <Form.Label>Upload Document</Form.Label>
-                            <Form.Control type='file' accept='.pdf,.doc,.docx' onChange={handleFileUpload} />
+                        <Form.Group controlId='ClientDetails' className='mb-4'>
+                            <Form.Label>Client</Form.Label>
+                            <Form.Control type='text' value={client} onChange={handleClientChange} required />
                         </Form.Group>
+
+                        <Form.Group controlId='JobDescription' className='mb-4'>
+                            <Form.Label>Job Description or Tech Stack</Form.Label>
+                            <Form.Control as='textarea' value={jobDescription} onChange={handleJobDescriptionChange} required />
+                        </Form.Group>
+
+                        <Form.Group controlId='formFile' className='mb-4'>
+                            <Form.Label>Upload Resume</Form.Label>
+                            <Form.Control type='file' accept='.pdf,.doc,.docx' onChange={handleResumeUpload} required />
+                        </Form.Group>
+
+                        <Button variant='primary' onClick={handleSubmit}>
+                            Submit
+                        </Button>
+                        {error && <p className="text-danger mt-2">{error}</p>}
                     </Form>
-                    <Card className='custom-card ' id='ConvCard'>
+
+                    <Card className='mt-4'>
                         <Card.Body>
-                            <Row className='flex items-center justify-center h-screen w-full'>
-                                <Col xl={1} className=''>
-                                    <div className='flex items-center w-full'>
-                                        {isRecording ? (
-                                            <Button
-                                                onClick={handleToggleRecording}
-                                                variant='outline-danger'
-                                                className='btn btn-icon rounded-pill btn-wave'
-                                            >
-                                                <i className='ri-mic-fill '></i>
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                onClick={handleToggleRecording}
-                                                variant='outline-success'
-                                                className='btn btn-icon  rounded-pill btn-wave'
-                                            >
-                                                <i className='ri-mic-fill'></i>
-                                            </Button>
-                                        )}
-                                    </div>
+                            <Row className='d-flex align-items-center'>
+                                <Col xl={1}>
+                                    <Button
+                                        onClick={handleToggleRecording}
+                                        variant={isRecording ? 'outline-danger' : 'outline-success'}
+                                        disabled={!isMicEnabled}
+                                    >
+                                        <i className='ri-mic-fill'></i>
+                                    </Button>
                                 </Col>
-                                <Col xl={11} className=''>
+                                <Col xl={11}>
                                     {(isRecording || interimTranscript || finalTranscript) && (
-                                        <div className='w-1/4 m-auto rounded-md border bg-white'>
-                                            <div className='flex-1 flex w-full '>
-                                                {isRecording && (
-                                                    <div className='rounded-full w-4 h-4 bg-red-400 animate-pulse' />
-                                                )}
-                                            </div>
-                                            {(interimTranscript || finalTranscript) && (
-                                                <div className='border rounded-md p-2 h-fullm'>
-                                                    <p id='transcript' className='mb-0'>
-                                                        {finalTranscript + interimTranscript}
-                                                    </p>
-                                                </div>
-                                            )}
+                                        <div className='transcript-box'>
+                                            <p>{finalTranscript + interimTranscript}</p>
                                         </div>
                                     )}
                                 </Col>
                             </Row>
+
                             <Row>
                                 <Col>
-                                    <Card className='mt-3'>
+                                    <Card className='mt-4'>
                                         <Card.Body>
                                             <h5>Chat Conversation:</h5>
                                             {messages.map((message, index) => (
@@ -224,23 +222,6 @@ const Floatinglabels = () => {
                                     </Card>
                                 </Col>
                             </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col xl={3}>
-                    <Card id='setTopicCard' className='custom-card '>
-                        <Card.Body>
-                            <Form.Floating className=' mb-4'>
-                                <Form.Control as='input' className='' placeholder='Client Name' id='ClientDetails' />
-                                <label htmlFor='floatingTextarea'>Client </label>
-                            </Form.Floating>
-                            <Form.Floating className=' mb-4'>
-                                <Form.Control as='textarea' className='' placeholder='' id='JobDescription' style={{ height: '200px' }} />
-                                <label htmlFor='floatingTextarea'>Job Description or Tech Stack</label>
-                            </Form.Floating>
-                            <Button variant='outline-info' onClick={setTopic} className='float-end'>
-                                Submit
-                            </Button>
                         </Card.Body>
                     </Card>
                 </Col>

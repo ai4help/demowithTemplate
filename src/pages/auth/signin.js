@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { signIn } from 'next-auth/react';
 import axios from 'axios';
 
 export default function SignIn() {
@@ -91,9 +92,10 @@ export default function SignIn() {
                         <hr />
                     </div>
 
+                    {/* Login with Google */}
                     <button
                         type="button"
-                        onClick={() => signIn('google')}
+                        onClick={() => signIn('google', { callbackUrl: '/profile' })}
                         className="signin-google-button"
                     >
                         Login with Google
